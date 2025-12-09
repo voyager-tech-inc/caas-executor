@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE containers SET stop_time = $2, container_id = NULL WHERE config_hash = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Timestamp"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8f66d6e094907cb285a5c590ff2ffe5283bac659739eb2b8b1962aa98a65cdb9"
+}

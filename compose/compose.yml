@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2025 Voyager Technologies, Inc.
+#
+# SPDX-License-Identifier: MIT
+
+---
+services:
+  caas-executor-comp:
+    image: ghcr.io/voyager-tech-inc/caas-executor:latest
+    container_name: caas-executor-comp
+    command: [
+      "--comp-mode", "compress",
+      "--compression-algorithm", "gzip",
+      "--container-type", "comp",
+      "--host-input-dir", "${PWD}/comp_input",
+      "--host-output-dir", "${PWD}/comp_output",
+      "--server-mode",
+      "gzip -c %{IN} > %{OUT}"
+    ]
+    environment:
+      DATABASE_URL: "postgres://caas:test@db_comp:5432/caas_comp"
+      RUST_LOG: "debug"
+    networks:
+      - caas
+    volumes:
+      - "${PWD}/comp_input:/opt/caas/data/input"
+      - "${PWD}/comp_output:/opt/caas/data/output"
+
+  caas-executor-decomp:
+    image: ghcr.io/voyager-tech-inc/caas-executor:latest
+    container_name: caas-executor-decomp
+    command: [
+      "--comp-mode", "decompress",
+      "--compression-algorithm", "gzip",
+      "--container-type", "decomp",
+      "--host-input-dir", "${PWD}/comp_output",
+      "--host-output-dir", "${PWD}/decomp_output",
+      "--server-mode",
+      "gunzip -c %{IN} > %{OUT}"
+    ]
+    environment:
+      DATABASE_URL: "postgres://caas:test@db_decomp:5433/caas_decomp"
+      RUST_LOG: "debug"
+    networks:
+      - caas
+    volumes:
+      - "${PWD}/comp_output:/opt/caas/data/input"
+      - "${PWD}/decomp_output:/opt/caas/data/output"
+
+  db_comp:
+    image: docker.io/library/postgres:latest
+    container_name: db_comp
+    environment:
+      POSTGRES_DB: caas_comp
+      POSTGRES_USER: caas
+      POSTGRES_PASSWORD: test
+    networks:
+      - caas
+
+  db_decomp:
+    image: docker.io/library/postgres:latest
+    container_name: db_decomp
+    environment:
+      POSTGRES_DB: caas_decomp
+      POSTGRES_USER: caas
+      POSTGRES_PASSWORD: test
+    command: -p 5433
+    networks:
+      - caas
+
+networks:
+  caas:

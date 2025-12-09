@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n    SELECT\n      id,\n      timestamp,\n      filename,\n      filesize,\n      state as \"state: _\",\n      processing_time,\n      error,\n      config_hash\n      FROM compression\n      WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "timestamp",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 2,
+        "name": "filename",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "filesize",
+        "type_info": "Float4"
+      },
+      {
+        "ordinal": 4,
+        "name": "state: _",
+        "type_info": {
+          "Custom": {
+            "name": "comp_state",
+            "kind": {
+              "Enum": [
+                "Pending",
+                "Processing",
+                "Failed",
+                "Done"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "processing_time",
+        "type_info": "Float4"
+      },
+      {
+        "ordinal": 6,
+        "name": "error",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "config_hash",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "171644c37f4b18410126957a8d47b0e6da2679b3cab4bf479f6b90b548f93258"
+}

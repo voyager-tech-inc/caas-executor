@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2025 Valley Tech Systems, Inc
+#
+# SPDX-License-Identifier: MIT
+---
+name: ci
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    types: [opened, synchronize]
+
+# By default, only give actions read access.
+permissions: read-all
+
+jobs:
+  build_and_test:
+    name: Build and test
+    runs-on: ${{ vars.RUNS_ON || 'ubuntu-latest' }}
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - name: Install Earthly
+        uses: earthly/actions-setup@b81a8e082d9fae6174210cfc6e54bd2feb124d94
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Run Earthly
+        run: earthly --ci -P +all
+
+  commit_check:
+    name: Commit check
+    runs-on: ${{ vars.RUNS_ON || 'ubuntu-latest' }}
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Conform
+        run: >
+          docker run
+          --rm
+          -v "$PWD:/src:ro,Z"
+          -w /src
+          ghcr.io/siderolabs/conform:v0.1.0-alpha.30
+          enforce
+          --base-branch=origin/main

@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2025 Valley Tech Systems, Inc
+#
+# SPDX-License-Identifier: MIT
+---
+name: release
+on:
+  push:
+    tags:
+      - "[0-9]+\\.[0-9]+\\.[0-9]+*"
+
+jobs:
+  release:
+    name: Release
+    runs-on: ${{ vars.RUNS_ON || 'ubuntu-latest' }}
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Install Earthly
+        uses: earthly/actions-setup@b81a8e082d9fae6174210cfc6e54bd2feb124d94
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Log in to GHCR
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Earthly
+        run: earthly --push -P +all
+      - name: Create release
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
+        with:
+          name: CaaS Executor ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          body: "Automated release for CaaS executor ${{ github.ref_name }}"
+          draft: false
+          prerelease: false
+          files: |
+            ./caas-executor-vendored-deps.tar.xz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

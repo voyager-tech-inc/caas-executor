@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE compression SET timestamp = $2, state = $3 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Timestamp",
+        {
+          "Custom": {
+            "name": "comp_state",
+            "kind": {
+              "Enum": [
+                "Pending",
+                "Processing",
+                "Failed",
+                "Done"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bdfdf173af24da029d0a73fad22481472828cbcb566f4e4c9008332c957f4484"
+}

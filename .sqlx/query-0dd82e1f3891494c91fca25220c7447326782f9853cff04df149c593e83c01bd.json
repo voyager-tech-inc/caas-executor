@@ -1,0 +1,104 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n    SELECT\n      config_hash,\n      container_id,\n      container_type,\n      mode as \"mode: CompressionMode\",\n      datatype_fileformat,\n      compression_algorithm,\n      is_server,\n      start_time,\n      stop_time,\n      container_args,\n      input_directory,\n      output_directory,\n      grafana_label\n      FROM containers\n      WHERE config_hash = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "config_hash",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "container_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "container_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "mode: CompressionMode",
+        "type_info": {
+          "Custom": {
+            "name": "comp_mode",
+            "kind": {
+              "Enum": [
+                "Compress",
+                "Decompress"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "datatype_fileformat",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "compression_algorithm",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "is_server",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "start_time",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 8,
+        "name": "stop_time",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 9,
+        "name": "container_args",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "input_directory",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 11,
+        "name": "output_directory",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "grafana_label",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0dd82e1f3891494c91fca25220c7447326782f9853cff04df149c593e83c01bd"
+}

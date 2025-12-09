@@ -1,0 +1,36 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\nINSERT INTO containers\n(config_hash,\n command_template,\n container_id,\n container_type,\n mode,\n datatype_fileformat,\n compression_algorithm,\n is_server,\n start_time,\n container_args,\n input_directory,\n output_directory,\n grafana_label)\nVALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)\nON CONFLICT (config_hash)\nDO UPDATE SET\n  container_id     = $3,\n  start_time       = $9,\n  stop_time        = NULL,\n  container_args   = $10,\n  output_directory = $12,\n  grafana_label    = $13;\n",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        {
+          "Custom": {
+            "name": "comp_mode",
+            "kind": {
+              "Enum": [
+                "Compress",
+                "Decompress"
+              ]
+            }
+          }
+        },
+        "Text",
+        "Text",
+        "Bool",
+        "Timestamp",
+        "Text",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5686a61661e831ebad62ccf4c515ef8e2e754544179f2ab48bdf79262450fcce"
+}
