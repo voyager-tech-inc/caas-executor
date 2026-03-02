@@ -19,7 +19,7 @@ pub struct Args {
     pub output_dir: String,
 
     /// Name of processed directory where processed input files will be moved to.
-    /// Assumes that processed dir is in same mount directory as the input files.
+    /// If None given from CLI, the input file will not be moved
     #[arg(short, long, default_value = "processed")]
     pub processed_dir: String,
 

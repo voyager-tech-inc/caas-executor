@@ -2,16 +2,18 @@
 //
 // SPDX-License-Identifier: MIT
 
+use std::path::PathBuf;
+
 #[derive(Debug)]
 pub struct PathBundle {
     /// Path to input directory (no name)
-    pub path_in: String,
+    pub path_in: PathBuf,
 
     /// Path to output directory (no name)
-    pub path_out: String,
+    pub path_out: PathBuf,
 
     /// Path to processed directory (no name)
-    pub path_proc: String,
+    pub path_proc: Option<PathBuf>,
 
     /// Name of input file which may or many not have a suffix depending on mode
     /// (compress/decompress) compressing or decompressing.
@@ -23,27 +25,26 @@ pub struct PathBundle {
 
     /// Full path to output file for child process, this may be a hidden file if
     /// use-hidden-files is true.
-    pub fileout: String,
+    pub fileout: PathBuf,
 }
 
 impl PathBundle {
-    pub fn path_from(&self) -> String {
-        format!("{}/{}", self.path_in, self.name_in)
+    pub fn path_from(&self) -> PathBuf {
+        self.path_in.join(self.name_in.clone())
     }
 
-    pub fn path_to(&self) -> String {
-        format!("{}/{}", self.path_out, self.name_out)
-    }
-
-    pub fn path_fileout(&self) -> &str {
-        self.fileout.as_str()
+    pub fn path_to(&self) -> PathBuf {
+        self.path_out.join(self.name_out.clone())
     }
 
     pub fn is_hidden_file(&self) -> bool {
-        self.fileout.contains("/.caas")
+        let path_str = self.fileout.to_string_lossy();
+        path_str.contains("/.caas")
     }
 
-    pub fn path_proc(&self) -> String {
-        format!("{}/{}", self.path_proc, self.name_in)
+    pub fn path_proc(&self) -> Option<PathBuf> {
+        self.path_proc
+            .as_ref()
+            .map(|path_proc| path_proc.join(self.name_in.clone()))
     }
 }
