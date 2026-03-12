@@ -6,6 +6,7 @@ use super::dir_mon::*;
 use anyhow::{anyhow, Result};
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
+use std::path::PathBuf;
 use std::process::Command;
 use std::sync::{Arc, Condvar, Mutex};
 use threadpool::ThreadPool;
@@ -90,10 +91,14 @@ impl Application {
         };
 
         // Create the processed directory
-        ensure_dir_exists(&app.dir_proc())?;
+        if let Some(processed_dir) = &app.dir_proc() {
+            ensure_dir_exists(processed_dir)?;
+        }
+
         if get_args().use_hidden_files {
             // Create .caas directory for use-hidden-files mode
-            ensure_dir_exists(&(app.path_out().to_owned() + "/.caas"))?;
+            let hidden_path = PathBuf::from(&(app.path_out().to_owned())).join(".caas");
+            ensure_dir_exists(&hidden_path)?;
         }
 
         Ok(app)
@@ -332,15 +337,20 @@ impl Application {
     }
 
     /// Generate a full path to the file in the processed dir.
-    fn dir_proc(&self) -> String {
-        //
+    fn dir_proc(&self) -> Option<PathBuf> {
         let processed_dir = &get_args().processed_dir;
-        let dir_proc = std::path::Path::new(processed_dir);
 
-        if dir_proc.is_absolute() {
-            processed_dir.to_owned()
+        if processed_dir != "None" {
+            let dir_proc = std::path::PathBuf::from(processed_dir);
+
+            if dir_proc.is_absolute() {
+                Some(dir_proc)
+            } else {
+                let path = PathBuf::from(self.path_in());
+                Some(path.join(processed_dir))
+            }
         } else {
-            format!("{}/{}", self.path_in(), processed_dir)
+            None
         }
     }
 
@@ -422,12 +432,12 @@ impl Application {
             .replace("%{OUT}", &fileout);
 
         let pathbund = PathBundle {
-            path_in: self.path_in().to_owned(),
-            path_out: self.path_out().to_owned(),
+            path_in: PathBuf::from(self.path_in().to_owned()),
+            path_out: PathBuf::from(self.path_out().to_owned()),
             path_proc: self.dir_proc(),
             name_in: name.to_owned(),
-            name_out, // basename of output file
-            fileout,  // full path to file out
+            name_out,                        // basename of output file
+            fileout: PathBuf::from(fileout), // full path to file out
         };
         (command_line, pathbund)
     }
@@ -468,12 +478,12 @@ impl Application {
 ///
 /// Return: Nothing '()' on success, else std::io::Error on failure
 //
-fn ensure_dir_exists(new_dir: &str) -> Result<(), std::io::Error> {
-    log::debug!("ensure_dir_exists:{}", new_dir);
+fn ensure_dir_exists(new_dir: &PathBuf) -> Result<(), std::io::Error> {
+    log::debug!("ensure_dir_exists:{}", new_dir.display());
     //
     // Attempt to obtain meta data of the proposed new dir.
     //
-    if fs::metadata(new_dir).is_err() {
+    if !new_dir.exists() {
         //
         // Most likely error is 'does not exist', so create it.
 
@@ -481,10 +491,10 @@ fn ensure_dir_exists(new_dir: &str) -> Result<(), std::io::Error> {
 
         match new_dir_handle {
             Ok(_) => {
-                log::info!("Created directory: {}", new_dir);
+                log::info!("Created directory: {}", new_dir.display());
             }
             Err(err) => {
-                log::error!("Error creating directory: {}", new_dir);
+                log::error!("Error creating directory: {}", new_dir.display());
                 return Err(err);
             }
         }

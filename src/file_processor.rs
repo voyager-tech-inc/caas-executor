@@ -4,7 +4,7 @@
 
 use anyhow::{anyhow, Result};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
@@ -69,7 +69,7 @@ impl FileProcessor
         db:             DatabasePtr,
         prom_exporter:  PushPromExporterPtr) -> Self
     {
-        let initial_size = get_filesize(path_bundle.path_from().as_str()) as f32;
+        let initial_size = get_filesize(&(path_bundle.path_from())) as f32;
 
         Self {
             path_bundle,
@@ -85,14 +85,15 @@ impl FileProcessor
 
     fn move_file_to_processed(&self)
     {
-        let path_f = self.path_bundle.path_from();
-        let path_t = self.path_bundle.path_proc();
-
-        log::debug!("Rename {} to {}", path_f, path_t);
-
-        if let Err(err) = std::fs::rename(&path_f, &path_t)
+        if let Some(path_proc) = self.path_bundle.path_proc()
         {
-            log::error!("Error moving file from {} to {}:{}", path_f, path_t, err);
+            let path_f = self.path_bundle.path_from();
+            log::debug!("Rename {} to {}", path_f.display(), path_proc.display());
+
+            if let Err(err) = std::fs::rename(&path_f, &path_proc)
+            {
+                log::error!("Error moving file from {} to {}:{}", path_f.display(), path_proc.display(), err);
+            }
         }
     }
 
@@ -161,8 +162,7 @@ impl FileProcessor
             // Compression table always store uncompressed size so pick the larger of the
             // two.  This is because this process doesn't know if it is a compress or a
             // decompress operation.
-            //
-            let sz1 = get_filesize(self.path_bundle.path_fileout()) as f32;
+            let sz1 = get_filesize(&self.path_bundle.fileout) as f32;
             let sz2 = get_filesize(&self.path_bundle.path_from()) as f32;
             let size = if sz1 > sz2 {
                 sz1
@@ -192,12 +192,12 @@ impl FileProcessor
         {
             // Rename the file up one level from "/.caas/" sub dir.
             let path_out    = self.path_bundle.path_to();
-            let path_hidden = self.path_bundle.path_fileout();
-            log::info!("@FILE: {} rename hidden file {} to {}", basename, path_hidden, path_out);
+            let path_hidden = self.path_bundle.fileout.clone();
+            log::info!("@FILE: {} rename hidden file {} to {}", basename, path_hidden.display(), path_out.display());
 
-            if let Err(err) = std::fs::rename(path_hidden, &path_out)
+            if let Err(err) = std::fs::rename(&path_hidden, &path_out)
             {
-                log::error!("Error moving file from {} to {}:{}", path_hidden, path_out, err);
+                log::error!("Error moving file from {} to {}:{}", path_hidden.display(), path_out.display(), err);
             }
 
             // some compression types generate additional artifacts, such as header files
@@ -273,11 +273,11 @@ impl FileProcessor
     } // notify_done
 } // impl FileProcessor
 
-fn get_filesize(of_file: &str) -> u64 {
+fn get_filesize(of_file: &PathBuf) -> u64 {
     match std::fs::metadata(of_file) {
         Ok(meta) => meta.len(),
         Err(err) => {
-            log::warn!("get_filesize: {}, err:{}", of_file, err);
+            log::warn!("get_filesize: {}, err:{}", of_file.display(), err);
             0_u64
         }
     }
